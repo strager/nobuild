@@ -1,0 +1,43 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build-linux-gcc:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          $CC ./build/nobuild.c -o ./build/nobuild
+          ./build/nobuild
+        env:
+          AR: ar
+          LD: ld
+          CC: gcc
+          CXX: g++
+  build-linux-clang:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          $CC ./build/nobuild.c -o ./build/nobuild
+          ./build/nobuild
+        env:
+          AR: llvm-ar
+          LD: llvm-link
+          CC: clang
+          CXX: clang++
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          $CC ./build/nobuild.c -o ./build/nobuild
+          ./build/nobuild
+        env:
+          AR: llvm-ar
+          LD: llvm-link
+          CC: clang
+          CXX: clang++

@@ -1,0 +1,6 @@
+nobuild
+target
+deps
+obj
+*.old
+output.txt

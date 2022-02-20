@@ -305,7 +305,7 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
     struct dirent *dp = NULL;                                                  \
     DIR *dir = opendir(dirpath);                                               \
     if (dir == NULL) {                                                         \
-      PANIC("could not open directory (%s): %s", dirpath, strerror(errno));    \
+      PANIC("could not open directory %s: %s", dirpath, strerror(errno));      \
     }                                                                          \
     errno = 0;                                                                 \
     while ((dp = readdir(dir))) {                                              \
@@ -681,6 +681,8 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
   INFO("before %s", local_deps.elems[0]);
+  INFO("count %d", local_deps.count);
+
   for (int j = local_deps.count - 1; j >= 0; j--) {
     INFO("append %s", local_deps.elems[j]);
     Cstr curr_feature = local_deps.elems[j];

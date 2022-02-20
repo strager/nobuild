@@ -664,6 +664,7 @@ Cstr_Array deps_get_manual(Cstr feature, Cstr_Array processed) {
           }
         }
         if (found == 0) {
+          INFO("%s not found", deps[i].elems[j]);
           processed = deps_get_manual(deps[i].elems[j], processed);
         }
       }

@@ -72,7 +72,7 @@ typedef struct {
 } Cmd_Array;
 
 // statics
-static int test_result_status = 0;
+static int test_result_status __attribute__((unused)) = 0;
 static struct option flags[] = {{"incremental", required_argument, 0, 'i'},
                                 {"release", no_argument, 0, 'r'},
                                 {"clean", no_argument, 0, 'c'},

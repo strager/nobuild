@@ -17,7 +17,7 @@ jobs:
           set +e
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release
-          if [$? == 2]; then
+          if [[$? == 2]]; then
             exit 0
           fi
           set -e
@@ -37,7 +37,7 @@ jobs:
           set +e
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release 
-          if [$? == 2]; then
+          if [[$? == 2]]; then
             exit 0
           fi
           set -e
@@ -57,7 +57,7 @@ jobs:
           set +e
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release
-          if [$? == 2]; then
+          if [[$? == 2]]; then
             exit 0
           fi
           set -e

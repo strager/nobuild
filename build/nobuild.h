@@ -72,7 +72,7 @@ typedef struct {
 } Cmd_Array;
 
 // statics
-static int test_result_status = 0;
+static int test_result_status __attribute__((unused)) = 0;
 static struct option flags[] = {{"incremental", required_argument, 0, 'i'},
                                 {"release", no_argument, 0, 'r'},
                                 {"clean", no_argument, 0, 'c'},
@@ -142,10 +142,11 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
 #define CONCAT(...) JOIN("", __VA_ARGS__)
 #define PATH(...) JOIN(PATH_SEP, __VA_ARGS__)
 
+// DEPS("things", "stuff");
 #define DEPS(first, ...)                                                       \
   do {                                                                         \
-    Cstr_Array deps = cstr_array_make(__VA_ARGS__, NULL);                      \
-    manual_deps(first, deps);                                                  \
+    Cstr_Array macro_deps = cstr_array_make(__VA_ARGS__, NULL);                \
+    manual_deps(first, macro_deps);                                            \
   } while (0)
 
 #define CMD(...)                                                               \
@@ -681,7 +682,6 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
   for (int j = local_deps.count - 1; j >= 0; j--) {
-    INFO("append %s", local_deps.elems[j]);
     Cstr curr_feature = local_deps.elems[j];
     FOREACH_FILE_IN_DIR(file, curr_feature, {
       Cstr output = CONCAT("obj/", curr_feature, "/", NOEXT(file), ".o");

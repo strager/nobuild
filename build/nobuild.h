@@ -416,6 +416,7 @@ Cstr_Array cstr_array_make(Cstr first, ...) {
   va_start(args, first);
   for (Cstr next = va_arg(args, Cstr); next != NULL;
        next = va_arg(args, Cstr)) {
+    INFO("array_make (%s)", next);
     result.count += 1;
   }
   va_end(args);

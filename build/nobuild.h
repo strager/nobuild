@@ -417,7 +417,6 @@ Cstr_Array cstr_array_make(Cstr first, ...) {
   va_start(args, first);
   for (Cstr next = va_arg(args, Cstr); next != NULL;
        next = va_arg(args, Cstr)) {
-    INFO("array_make (%s)", next);
     result.count += 1;
   }
   va_end(args);
@@ -652,16 +651,10 @@ void manual_deps(Cstr feature, Cstr_Array man_deps) {
   }
   deps[deps_count - 1] = cstr_array_make(feature);
   deps[deps_count - 1] = cstr_array_concat(deps[deps_count - 1], man_deps);
-
-  INFO("MANUAL DEP %s", deps[deps_count - 1].elems[0]);
-  for (int i = 0; i < deps[deps_count - 1].count; i++) {
-    INFO("INDI DEPS %s", deps[deps_count - 1].elems[i]);
-  }
 }
 
 Cstr_Array deps_get_manual(Cstr feature, Cstr_Array processed) {
   processed = cstr_array_append(processed, feature);
-  INFO("feature to compare %s", feature);
   for (int i = 0; i < deps_count; i++) {
     if (strcmp(deps[i].elems[0], feature) == 0) {
       for (int j = 1; j < deps[i].count; j++) {
@@ -672,7 +665,6 @@ Cstr_Array deps_get_manual(Cstr feature, Cstr_Array processed) {
           }
         }
         if (found == 0) {
-          INFO("%s not found", deps[i].elems[j]);
           processed = deps_get_manual(deps[i].elems[j], processed);
         }
       }
@@ -689,11 +681,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
                                 CONCAT("tests/", feature, ".c"), NULL));
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
-  INFO("before %s", local_deps.elems[0]);
-  INFO("count %zu", local_deps.count);
-
   for (int j = local_deps.count - 1; j >= 0; j--) {
-    INFO("append %s", local_deps.elems[j]);
     Cstr curr_feature = local_deps.elems[j];
     FOREACH_FILE_IN_DIR(file, curr_feature, {
       Cstr output = CONCAT("obj/", curr_feature, "/", NOEXT(file), ".o");
@@ -713,7 +701,6 @@ void build(Cstr_Array comp_flags) {
     obj_build(features[i].elems[0], comp_flags);
   }
   for (int i = 0; i < feature_count; i++) {
-    INFO("feature before %s", features[i].elems[0]);
     test_build(features[i].elems[0], comp_flags);
   }
   for (int i = 0; i < feature_count; i++) {

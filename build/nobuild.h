@@ -654,6 +654,7 @@ void manual_deps(Cstr feature, Cstr_Array man_deps) {
 
 Cstr_Array deps_get_manual(Cstr feature, Cstr_Array processed) {
   processed = cstr_array_append(processed, feature);
+  INFO("feature to compare %s");
   for (int i = 0; i < deps_count; i++) {
     if (strcmp(deps[i].elems[0], feature) == 0) {
       for (int j = 1; j < deps[i].count; j++) {

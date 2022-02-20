@@ -14,7 +14,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: build
         run: |
-          $CC ./build/nobuild.c -o ./build/nobuild
+          #$CC ./build/nobuild.c -o ./build/nobuild
+          $CC -E ./build/nobuild.c 
           ./build/nobuild --release
           if [$? == 2]; then
             exit 0

@@ -102,12 +102,10 @@ void test_build(Cstr feature, Cstr_Array comp_flags);
 Cstr_Array deps_get_lifted(Cstr file, Cstr_Array processed);
 void lib_build(Cstr feature, Cstr_Array flags, Cstr_Array deps);
 void static_build(Cstr feature, Cstr_Array flags, Cstr_Array deps);
-void deps_set(Cstr feature, Cstr file);
 void manual_deps(Cstr feature, Cstr_Array deps);
-void recurse_deps(Cstr feature, Cstr file);
 void pid_wait(Pid pid);
 void test_pid_wait(Pid pid);
-void handle_args(int argc, char **argv);
+int handle_args(int argc, char **argv);
 void make_feature(Cstr val);
 void write_report();
 void create_folders();
@@ -294,12 +292,6 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
     Cstr_Array path = cstr_array_make(__VA_ARGS__, NULL);                      \
     INFO("MKDIRS: %s", cstr_array_join(PATH_SEP, path));                       \
     path_mkdirs(path);                                                         \
-  } while (0)
-
-#define RENAME(old_path, new_path)                                             \
-  do {                                                                         \
-    INFO("RENAME: %s -> %s", old_path, new_path);                              \
-    path_rename(old_path, new_path);                                           \
   } while (0)
 
 #define RM(path)                                                               \
@@ -524,7 +516,7 @@ void write_report(Cstr file) {
   fclose(fp);
 }
 
-void handle_args(int argc, char **argv) {
+int handle_args(int argc, char **argv) {
   int opt_char = -1;
   int found = 0;
   int option_index;
@@ -545,14 +537,17 @@ void handle_args(int argc, char **argv) {
     }
     case 'i': {
       // Cstr parsed = parse_feature_from_path(optarg);
+      RETURN();
       break;
     }
     case 'r': {
       release();
+      RETURN();
       break;
     }
     case 'd': {
       debug();
+      RETURN();
       break;
     }
     case 'a': {
@@ -571,7 +566,9 @@ void handle_args(int argc, char **argv) {
     WARN("No arguments passed to nobuild");
     WARN("Building all features");
     debug();
+    RETURN();
   }
+  return 0;
 }
 
 void make_feature(Cstr feature) {

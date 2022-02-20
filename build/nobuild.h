@@ -379,7 +379,7 @@ void add_feature(Cstr_Array val) {
 }
 
 Cstr_Array cstr_array_make(Cstr first, ...) {
-  Cstr_Array result = CSTRS();
+  Cstr_Array result = {0};
 
   if (first == NULL) {
     return result;
@@ -415,7 +415,7 @@ Cstr_Array cstr_array_make(Cstr first, ...) {
 
 Cstr_Array cstr_array_concat(Cstr_Array cstrs1, Cstr_Array cstrs2) {
   if (cstrs1.count == 0 && cstrs2.count == 0) {
-    Cstr_Array temp = CSTRS();
+    Cstr_Array temp = {0};
     return temp;
   } else if (cstrs1.count == 0) {
     return cstrs2;
@@ -507,7 +507,7 @@ int handle_args(int argc, char **argv) {
     }
     case 'i': {
       Cstr parsed = parse_feature_from_path(optarg);
-      Cstr_Array all = CSTRS();
+      Cstr_Array all = {0};
       all = incremental_build(parsed, all);
       Cstr_Array local_comp = cstr_array_make(DCOMP, NULL);
       INFO("building...");
@@ -613,7 +613,7 @@ void obj_build(Cstr feature, Cstr_Array comp_flags) {
     Cstr output = CONCAT("obj/", feature, "/", NOEXT(file), ".o");
     Cmd obj_cmd = {.line = cstr_array_make(CC, CFLAGS, NULL)};
     obj_cmd.line = cstr_array_concat(obj_cmd.line, comp_flags);
-    Cstr_Array arr = cstr_array_make("-MMD", "-fPIC", "-o", output, "-c", NULL);
+    Cstr_Array arr = cstr_array_make("-fPIC", "-o", output, "-c", NULL);
     obj_cmd.line = cstr_array_concat(obj_cmd.line, arr);
     obj_cmd.line = cstr_array_append(obj_cmd.line, CONCAT(feature, "/", file));
     cmd_run_sync(obj_cmd);
@@ -662,7 +662,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
                                 CONCAT("tests/", feature, ".c"), NULL));
   INFO("CMD: %s", cmd_show(cmd));
 
-  Cstr_Array local_deps = CSTRS();
+  Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
   for (int j = local_deps.count - 1; j >= 0; j--) {
     Cstr curr_feature = local_deps.elems[j];

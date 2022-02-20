@@ -680,6 +680,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
                                 CONCAT("tests/", feature, ".c"), NULL));
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
+  INFO("before %s", local_deps.elems[0]);
   for (int j = local_deps.count - 1; j >= 0; j--) {
     INFO("append %s", local_deps.elems[j]);
     Cstr curr_feature = local_deps.elems[j];

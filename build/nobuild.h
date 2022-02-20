@@ -142,10 +142,11 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
 #define CONCAT(...) JOIN("", __VA_ARGS__)
 #define PATH(...) JOIN(PATH_SEP, __VA_ARGS__)
 
+// DEPS("things", "stuff");
 #define DEPS(first, ...)                                                       \
   do {                                                                         \
-    Cstr_Array deps = cstr_array_make(__VA_ARGS__, NULL);                      \
-    manual_deps(first, deps);                                                  \
+    Cstr_Array macro_deps = cstr_array_make(__VA_ARGS__, NULL);                \
+    manual_deps(first, macro_deps);                                            \
   } while (0)
 
 #define CMD(...)                                                               \

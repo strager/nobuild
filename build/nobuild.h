@@ -706,6 +706,7 @@ void build(Cstr_Array comp_flags) {
     obj_build(features[i].elems[0], comp_flags);
   }
   for (int i = 0; i < feature_count; i++) {
+    INFO("feature before %s", features[i].elems[0]);
     test_build(features[i].elems[0], comp_flags);
   }
   for (int i = 0; i < feature_count; i++) {

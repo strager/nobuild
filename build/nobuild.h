@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -74,17 +75,19 @@ typedef struct {
 // statics
 static int test_result_status __attribute__((unused)) = 0;
 static struct option flags[] = {{"incremental", required_argument, 0, 'i'},
-                                {"release", no_argument, 0, 'r'},
                                 {"clean", no_argument, 0, 'c'},
+                                {"release", no_argument, 0, 'r'},
                                 {"add", no_argument, 0, 'a'},
                                 {"debug", no_argument, 0, 'd'}};
-static result_t results = {0};
+static result_t results = {0, 0};
 static Cstr_Array *features = NULL;
 static Cstr_Array *deps = NULL;
 static int feature_count = 0;
 static int deps_count = 0;
+static clock_t start = 0;
 
 // forwards
+Cstr_Array incremental_build(Cstr parsed, Cstr_Array processed);
 Cstr_Array cstr_array_concat(Cstr_Array cstrs1, Cstr_Array cstrs2);
 int cstr_ends_with(Cstr cstr, Cstr postfix);
 Cstr cstr_no_ext(Cstr path);
@@ -136,13 +139,15 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
     body;                                                                      \
   }
 
+#define CSTRS()                                                                \
+  { .elems = NULL, .count = 0 }
+
 #define ENDS_WITH(cstr, postfix) cstr_ends_with(cstr, postfix)
 #define NOEXT(path) cstr_no_ext(path)
 #define JOIN(sep, ...) cstr_array_join(sep, cstr_array_make(__VA_ARGS__, NULL))
 #define CONCAT(...) JOIN("", __VA_ARGS__)
 #define PATH(...) JOIN(PATH_SEP, __VA_ARGS__)
 
-// DEPS("things", "stuff");
 #define DEPS(first, ...)                                                       \
   do {                                                                         \
     Cstr_Array macro_deps = cstr_array_make(__VA_ARGS__, NULL);                \
@@ -160,17 +165,6 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
   do {                                                                         \
     RM("target");                                                              \
     RM("obj");                                                                 \
-  } while (0)
-
-#define FIRSTRUN()                                                             \
-  do {                                                                         \
-    MKDIRS("target");                                                          \
-    MKDIRS("obj");                                                             \
-  } while (0)
-
-#define OBJS(feature, comp_flags)                                              \
-  do {                                                                         \
-    obj_build(feature, cstr_array_make(comp_flags));                           \
   } while (0)
 
 #ifndef NOLIBS
@@ -195,12 +189,6 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
   do {                                                                         \
   } while (0)
 #endif
-
-#define TESTS(feature, ...)                                                    \
-  do {                                                                         \
-    CMD(CC, CFLAGS, "-o", CONCAT("target/", feature),                          \
-        CONCAT("obj/", feature, ".o"), CONCAT("tests/", feature, ".c"));       \
-  } while (0)
 
 #define EXEC_TESTS(feature)                                                    \
   do {                                                                         \
@@ -231,12 +219,7 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
 
 #define BOOTSTRAP(argc, argv)                                                  \
   do {                                                                         \
-    if (is_first_run()) {                                                      \
-      create_folders();                                                        \
-      Fd fd = fd_open_for_write("target/nobuild/firstrun");                    \
-      write(fd, "", 1);                                                        \
-      close(fd);                                                               \
-    }                                                                          \
+    start = clock();                                                           \
     handle_args(argc, argv);                                                   \
   } while (0)
 
@@ -359,14 +342,6 @@ Cstr cstr_no_ext(Cstr path) {
   }
 }
 
-int is_first_run() {
-  Fd result = open("target/first", O_RDONLY);
-  if (result < 0) {
-    return 1;
-  }
-  return 0;
-}
-
 void create_folders() {
   MKDIRS("target", "nobuild");
   MKDIRS("obj");
@@ -391,7 +366,6 @@ void update_results() {
 }
 
 void add_feature(Cstr_Array val) {
-  INFO("FEATURE: %s", val.elems[0]);
   if (features == NULL) {
     features = malloc(sizeof(Cstr_Array));
     feature_count++;
@@ -405,7 +379,7 @@ void add_feature(Cstr_Array val) {
 }
 
 Cstr_Array cstr_array_make(Cstr first, ...) {
-  Cstr_Array result = {0};
+  Cstr_Array result = CSTRS();
 
   if (first == NULL) {
     return result;
@@ -441,7 +415,7 @@ Cstr_Array cstr_array_make(Cstr first, ...) {
 
 Cstr_Array cstr_array_concat(Cstr_Array cstrs1, Cstr_Array cstrs2) {
   if (cstrs1.count == 0 && cstrs2.count == 0) {
-    Cstr_Array temp = {0};
+    Cstr_Array temp = CSTRS();
     return temp;
   } else if (cstrs1.count == 0) {
     return cstrs2;
@@ -529,15 +503,20 @@ int handle_args(int argc, char **argv) {
     case 'c': {
       CLEAN();
       create_folders();
-      Fd fd = fd_open_for_write("target/nobuild/firstrun");
-      if (write(fd, "", 1) == -1) {
-        PANIC("error creating firstrun file");
-      }
-      close(fd);
       break;
     }
     case 'i': {
-      // Cstr parsed = parse_feature_from_path(optarg);
+      Cstr parsed = parse_feature_from_path(optarg);
+      Cstr_Array all = CSTRS();
+      all = incremental_build(parsed, all);
+      Cstr_Array local_comp = cstr_array_make(DCOMP, NULL);
+      INFO("building...");
+      for (int i = 0; i < all.count; i++) {
+        obj_build(all.elems[i], local_comp);
+        test_build(all.elems[i], local_comp);
+        EXEC_TESTS(all.elems[i]);
+      }
+      INFO("NOBUILD took ... %f", ((double)clock() - start) / CLOCKS_PER_SEC);
       RETURN();
       break;
     }
@@ -587,6 +566,7 @@ void make_feature(Cstr feature) {
 Cstr parse_feature_from_path(Cstr val) {
   Cstr noext = NOEXT(val);
   size_t n = strlen(noext);
+  n -= 1;
   size_t end;
   while (n > 0 && noext[n] != '/') {
     n -= 1;
@@ -598,9 +578,10 @@ Cstr parse_feature_from_path(Cstr val) {
   }
   n += 1;
   if (n > 0) {
-    char *result = malloc(end - n * sizeof(char));
-    memcpy(result, &noext[n], end - n);
-    result[end - 1] = '\0';
+    size_t len = end - n + 1;
+    char *result = malloc(len * sizeof(char));
+    memcpy(result, &noext[n], len);
+    result[end] = '\0';
     return result;
   } else {
     return noext;
@@ -679,7 +660,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
   cmd.line = cstr_array_concat(
       cmd.line, cstr_array_make("-o", CONCAT("target/", feature),
                                 CONCAT("tests/", feature, ".c"), NULL));
-  Cstr_Array local_deps = {0};
+  Cstr_Array local_deps = CSTRS();
   local_deps = deps_get_manual(feature, local_deps);
   for (int j = local_deps.count - 1; j >= 0; j--) {
     Cstr curr_feature = local_deps.elems[j];
@@ -694,6 +675,20 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
 
 void release() { build(cstr_array_make(RCOMP, NULL)); }
 
+// parsed = stuff
+Cstr_Array incremental_build(Cstr parsed, Cstr_Array processed) {
+  // processed = stuff
+  processed = cstr_array_append(processed, parsed);
+  for (int i = 0; i < deps_count; i++) {
+    for (int j = 1; j < deps[i].count; j++) {
+      if (strcmp(deps[i].elems[j], parsed) == 0) {
+        processed = incremental_build(deps[i].elems[0], processed);
+      }
+    }
+  }
+  return processed;
+}
+
 void debug() { build(cstr_array_make(DCOMP, NULL)); }
 
 void build(Cstr_Array comp_flags) {
@@ -706,6 +701,7 @@ void build(Cstr_Array comp_flags) {
   for (int i = 0; i < feature_count; i++) {
     EXEC_TESTS(features[i].elems[0]);
   }
+  INFO("NOBUILD took ... %f", ((double)clock() - start) / CLOCKS_PER_SEC);
   RESULTS();
 }
 

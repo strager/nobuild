@@ -15,7 +15,6 @@ jobs:
       - name: build
         run: |
           set +e
-          $CC -E ./build/nobuild.c 
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release
           if [$? == 2]; then
@@ -23,20 +22,19 @@ jobs:
           fi
           set -e
           echo "there was an issue with nobuild"
-          exit $?
+          exit 1
         env:
           AR: ar
           LD: ld
           CC: gcc
           CXX: g++
   build-linux-clang:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: build
         run: |
           set +e
-          $CC -E ./build/nobuild.c 
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release 
           if [$? == 2]; then
@@ -44,7 +42,7 @@ jobs:
           fi
           set -e
           echo "there was an issue with nobuild"
-          exit $?
+          exit 1
         env:
           AR: llvm-ar
           LD: llvm-link
@@ -57,7 +55,6 @@ jobs:
       - name: build
         run: |
           set +e
-          $CC -E ./build/nobuild.c 
           $CC ./build/nobuild.c -o ./build/nobuild
           ./build/nobuild --release
           if [$? == 2]; then
@@ -65,7 +62,7 @@ jobs:
           fi
           set -e
           echo "there was an issue with nobuild"
-          exit $?
+          exit 1
         env:
           AR: llvm-ar
           LD: llvm-link

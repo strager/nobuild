@@ -660,7 +660,6 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
   cmd.line = cstr_array_concat(
       cmd.line, cstr_array_make("-o", CONCAT("target/", feature),
                                 CONCAT("tests/", feature, ".c"), NULL));
-  INFO("CMD: %s", cmd_show(cmd));
 
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);

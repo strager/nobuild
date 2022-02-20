@@ -650,6 +650,11 @@ void manual_deps(Cstr feature, Cstr_Array man_deps) {
   }
   deps[deps_count - 1] = cstr_array_make(feature);
   deps[deps_count - 1] = cstr_array_concat(deps[deps_count - 1], man_deps);
+
+  INFO("MANUAL DEP %s", deps[deps_count - 1].elems[0]);
+  for (int i = 0; i < deps[deps_count - 1].count; i++) {
+    INFO("INDI DEPS %s", deps[deps_count - 1].elems[i]);
+  }
 }
 
 Cstr_Array deps_get_manual(Cstr feature, Cstr_Array processed) {

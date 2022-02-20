@@ -1,5 +1,11 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build-linux-gcc:
@@ -9,7 +15,12 @@ jobs:
       - name: build
         run: |
           $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild
+          ./build/nobuild --release
+          if [$? == 2]; then
+            exit 0
+          fi
+          echo "there was an issue with nobuild"
+          exit $?
         env:
           AR: ar
           LD: ld
@@ -22,7 +33,12 @@ jobs:
       - name: build
         run: |
           $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild
+          ./build/nobuild --release
+          if [$? == 2]; then
+            exit 0
+          fi
+          echo "there was an issue with nobuild"
+          exit $?
         env:
           AR: llvm-ar
           LD: llvm-link
@@ -35,7 +51,12 @@ jobs:
       - name: build
         run: |
           $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild
+          ./build/nobuild --release
+          if [$? == 2]; then
+            exit 0
+          fi
+          echo "there was an issue with nobuild"
+          exit $?
         env:
           AR: llvm-ar
           LD: llvm-link

@@ -305,7 +305,7 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
     struct dirent *dp = NULL;                                                  \
     DIR *dir = opendir(dirpath);                                               \
     if (dir == NULL) {                                                         \
-      PANIC("could not open directory %s: %s", dirpath, strerror(errno));      \
+      PANIC("could not open directory (%s): %s", dirpath, strerror(errno));    \
     }                                                                          \
     errno = 0;                                                                 \
     while ((dp = readdir(dir))) {                                              \

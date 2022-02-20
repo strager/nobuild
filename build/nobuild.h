@@ -681,7 +681,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
   Cstr_Array local_deps = {0};
   local_deps = deps_get_manual(feature, local_deps);
   INFO("before %s", local_deps.elems[0]);
-  INFO("count %d", local_deps.count);
+  INFO("count %zu", local_deps.count);
 
   for (int j = local_deps.count - 1; j >= 0; j--) {
     INFO("append %s", local_deps.elems[j]);

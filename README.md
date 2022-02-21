@@ -1,26 +1,25 @@
 # nobuild
 
-Header only library for writing build recipes in an opinionated way in C, with an additional testing framework.
+Header only library for writing build recipes in an opinionated way in C, with an additional testing framework included.
 Using the nobuild portion with the test framework, the tool becomes noframework.
 
 The original code started as a fork from [nobuild](https://github.com/tsoding/nobuild.git).
-All original creator comments/license is left as is.
 
 ## Main idea
 
-The idea is that you should not need anything but a C compiler to build a C project. No make, no cmake, no shell, no cmd, no PowerShell etc. Only C compiler. So with the C compiler you bootstrap your build system and then you use the build system to build everything else. (and test everything).
+The idea is that you should not need anything but a C compiler to build a C project. No make, no cmake, no shell, no cmd, no PowerShell etc. Only C compiler. So with the C compiler you bootstrap your build system and then you use the build system to build everything else, and run through all tests.
 
-The framework should be able to make most of the decisions for you. Just follow the [feature](#Feature_based_development) style of development.
+The framework should be able to make most of the decisions for you.
 
 ## Begin
 Try it out right here:
 
 ```console
-$ gcc ./build/nobuild.c -o ./build/nobuild
-$ ./build/nobuild
+$ gcc ./nobuild.c -o ./nobuild
+$ ./nobuild
 ```
 
-Explore [nobuild.c](./build/nobuild.c) file.
+Explore [nobuild.c](./nobuild.c) file.
 
 After running the example, and getting an idea of [feature](#Feature_based_development) based development. See the [I would like to know more](#I_would_like_to_know_more) section.
  
@@ -34,25 +33,40 @@ After running the example, and getting an idea of [feature](#Feature_based_devel
 ## Disadvantages of noframework
 
 - Highly opinionated.
-- It probably does not make any sense outside of C/C++ projects.
+- Doesn't work outside of C/C++ projects.
 - You get to use C more.
 
 ## How to use the library in your own project
 
 Keep in mind that [nobuild.h](./nobuild.h) is an [stb-style](https://github.com/nothings/stb/blob/master/docs/stb_howto.txt) header-only library. That means that just including it does not include the implementations of the functions. You have to `#define NOBUILD_IMPLEMENTATION` before the include. See our [nobuild.c](./nobuild.c) for an example.
 
-1. Copy [nobuild.h](./build/nobuild.h) to your project
-2. Create `build/nobuild.c` in your project with the build recipe. See our [nobuild.c](./build/nobuild.c) for an example.
+1. Copy [nobuild.h](./nobuild.h) to your project
+2. Create `nobuild.c` in your project with the build recipe. See our [nobuild.c](./nobuild.c) for an example.
 3. Bootstrap the `nobuild` executable:
-   - `$ gcc ./build/nobuild.c -o ./build/nobuild` on POSIX systems
-4. Run the build: `$ ./build/nobuild`
+   - `$ gcc ./nobuild.c -O3 -o ./nobuild` on POSIX systems
+4. Run the build: `$ ./nobuild`
 
-## Go Rebuild Urself™
+# Feature based development
+nobuild uses feature based development.
 
-TODO:: Still need to incorporate Go Rebuild Urself™ into the dependency tracking and test framework.
-If you enable the [Go Rebuild Urself™](https://github.com/tsoding/nobuild/blob/d2bd711f0e2bcff0651850cd795509ab104ad9d4/nobuild.h#L218-L239) Technology the `nobuild` executable will try to rebootstrap itself every time you modify its source code.
+add a new feature to your project.
+```c
+./nobuild --add math
+```
+this will automatically create an include file in the include directory, create a directory and file at `math/lib.c`, create a new test file named `tests/math.c`.
 
-# feature
+Some features could require additional Includes or other linked libraries. Edit the `nobuild.c` file, and add the new feature, along with any dependencies.
 
+```c
+  ADD_FEATURE("math","-lpthread");
+```
 
+If `math` has any dependencies within your project, include them, and nobuild will automatically link them when building tests, and dynamic and static libraries.
+```c
+  DEPS("math", "add", "mul", div");
+```
+
+Now, when running an incremental build, and changing the `div` feature, just run `./nobuild --incremental ./div/lib.c`
+
+`div` feature will be rebuilt and tested, as well as `math` being rebuilt and tested.
 # I would like to know more

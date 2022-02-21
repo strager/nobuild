@@ -77,7 +77,7 @@ static int test_result_status __attribute__((unused)) = 0;
 static struct option flags[] = {{"incremental", required_argument, 0, 'i'},
                                 {"clean", no_argument, 0, 'c'},
                                 {"release", no_argument, 0, 'r'},
-                                {"add", no_argument, 0, 'a'},
+                                {"add", required_argument, 0, 'a'},
                                 {"debug", no_argument, 0, 'd'}};
 
 static result_t results = {0, 0};
@@ -221,6 +221,7 @@ void OKAY(Cstr fmt, ...) NOBUILD_PRINTF_FORMAT(1, 2);
 #define BOOTSTRAP(argc, argv)                                                  \
   do {                                                                         \
     start = clock();                                                           \
+    create_folders();                                                          \
     handle_args(argc, argv);                                                   \
   } while (0)
 
@@ -380,28 +381,27 @@ void add_feature(Cstr_Array val) {
 }
 
 Cstr_Array cstr_array_make(Cstr first, ...) {
-  Cstr_Array result = {0};
+  Cstr_Array result = CSTRS();
+  size_t local_count = 0;
 
   if (first == NULL) {
     return result;
   }
 
-  result.count += 1;
-
+  local_count += 1;
   va_list args;
   va_start(args, first);
   for (Cstr next = va_arg(args, Cstr); next != NULL;
        next = va_arg(args, Cstr)) {
-    result.count += 1;
+    local_count += 1;
   }
   va_end(args);
 
-  result.elems = calloc(result.count, sizeof(result.elems[0]));
+  result.elems = calloc(local_count, sizeof(Cstr));
   if (result.elems == NULL) {
     PANIC("could not allocate memory: %s", strerror(errno));
   }
   result.count = 0;
-
   result.elems[result.count++] = first;
 
   va_start(args, first);
@@ -416,7 +416,7 @@ Cstr_Array cstr_array_make(Cstr first, ...) {
 
 Cstr_Array cstr_array_concat(Cstr_Array cstrs1, Cstr_Array cstrs2) {
   if (cstrs1.count == 0 && cstrs2.count == 0) {
-    Cstr_Array temp = {0};
+    Cstr_Array temp = CSTRS();
     return temp;
   } else if (cstrs1.count == 0) {
     return cstrs2;
@@ -508,7 +508,7 @@ int handle_args(int argc, char **argv) {
     }
     case 'i': {
       Cstr parsed = parse_feature_from_path(optarg);
-      Cstr_Array all = {0};
+      Cstr_Array all = CSTRS();
       all = incremental_build(parsed, all);
       Cstr_Array local_comp = cstr_array_make(DCOMP, NULL);
       INFO("building...");
@@ -532,6 +532,7 @@ int handle_args(int argc, char **argv) {
       break;
     }
     case 'a': {
+      INFO("optarg (%s)", optarg);
       make_feature(optarg);
       break;
     }
@@ -662,7 +663,7 @@ void test_build(Cstr feature, Cstr_Array comp_flags) {
       cmd.line, cstr_array_make("-o", CONCAT("target/", feature),
                                 CONCAT("tests/", feature, ".c"), NULL));
 
-  Cstr_Array local_deps = {0};
+  Cstr_Array local_deps = CSTRS();
   local_deps = deps_get_manual(feature, local_deps);
   for (int j = local_deps.count - 1; j >= 0; j--) {
     Cstr curr_feature = local_deps.elems[j];

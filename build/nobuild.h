@@ -79,6 +79,7 @@ static struct option flags[] = {{"incremental", required_argument, 0, 'i'},
                                 {"release", no_argument, 0, 'r'},
                                 {"add", no_argument, 0, 'a'},
                                 {"debug", no_argument, 0, 'd'}};
+
 static result_t results = {0, 0};
 static Cstr_Array *features = NULL;
 static Cstr_Array *deps = NULL;

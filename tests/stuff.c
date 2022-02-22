@@ -1,6 +1,6 @@
 #define NOBUILD_IMPLEMENTATION
-#include "../build/nobuild.h"
 #include "../include/stuff.h"
+#include "../nobuild.h"
 #include <stdio.h>
 
 void test_add_2() { ASSERT(add_2(3) == 5); }

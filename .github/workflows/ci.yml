@@ -15,8 +15,8 @@ jobs:
       - name: build
         run: |
           set +e
-          $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild --release
+          $CC -O3 ./nobuild.c -o ./nobuild
+          ./nobuild --release
           if [[ $? == 2 ]]; then
             exit 0
           fi
@@ -35,8 +35,8 @@ jobs:
       - name: build
         run: |
           set +e
-          $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild --release 
+          $CC -O3 ./nobuild.c -o ./nobuild
+          ./nobuild --release 
           if [[ $? == 2 ]]; then
             exit 0
           fi
@@ -55,8 +55,8 @@ jobs:
       - name: build
         run: |
           set +e
-          $CC ./build/nobuild.c -o ./build/nobuild
-          ./build/nobuild --release
+          $CC -O3 ./nobuild.c -o ./nobuild
+          ./nobuild --release
           if [[ $? == 2 ]]; then
             exit 0
           fi

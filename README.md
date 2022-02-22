@@ -43,7 +43,7 @@ Keep in mind that [nobuild.h](./nobuild.h) is an [stb-style](https://github.com/
 1. Copy [nobuild.h](./nobuild.h) to your project
 2. Create `nobuild.c` in your project with the build recipe. See our [nobuild.c](./nobuild.c) for an example.
 3. Bootstrap the `nobuild` executable:
-   - `$ gcc ./nobuild.c -O3 -o ./nobuild` on POSIX systems
+   - `$ gcc -O3 ./nobuild.c -o ./nobuild` on POSIX systems
 4. Run the build: `$ ./nobuild`
 
 # Feature based development
@@ -54,6 +54,8 @@ add a new feature to your project.
 ./nobuild --add math
 ```
 this will automatically create an include file in the include directory, create a directory and file at `math/lib.c`, create a new test file named `tests/math.c`.
+
+See this in action [add](./demo/add.md)
 
 Some features could require additional Includes or other linked libraries. Edit the `nobuild.c` file, and add the new feature, along with any dependencies.
 
@@ -66,7 +68,15 @@ If `math` has any dependencies within your project, include them, and nobuild wi
   DEPS("math", "add", "mul", div");
 ```
 
+After making any change to your projects `nobuild.c` file do not forget to run
+
+
 Now, when running an incremental build, and changing the `div` feature, just run `./nobuild --incremental ./div/lib.c`
 
-`div` feature will be rebuilt and tested, as well as `math` being rebuilt and tested.
+The `div` feature will be rebuilt and tested, as well as `math` being rebuilt and tested!
+
+See this in action [incremental](./demo/incremental.md)
+
+You will notice in this repository, the `stuff` feature has multiple files. This is called a fat feature. Build times could degrade if you use too many fat features with too many dependencies on other fat features. It is recommended to create many light small single file features for maximum efficiency.
+
 # I would like to know more
